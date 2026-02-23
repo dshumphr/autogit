@@ -24,9 +24,43 @@ A **Crush/Claude Code skill** that automatically tracks changes in a directory, 
   - [claude-cli](https://github.com/anthropics/claude-cli) — `npm install -g @anthropic-ai/claude-cli`
   - Any other Anthropic Skill compatible agent cli
 
-## Installation & Usage
+## Installation
 
-This skill should be installed by copying the autogitlog directory in your agent tool's skill directory. Once it is available for your agent cli, you can simply ask it to keep an auto git log for a particular directory. Let the agent know if there are any files that should be ignored, and it will update .gitignore appropriately.
+### Quick Install (Recommended)
+
+```bash
+git clone https://github.com/yourusername/auto-git-log.git
+cd auto-git-log
+./install.sh
+```
+
+This installs the skill to the default Crush skills directory (`~/.config/crush/skills/autogitlog`).
+
+### Custom Installation Directory
+
+To install to a specific location (e.g., for a single agent):
+
+```bash
+./install.sh --dir /path/to/your/agent/skills
+```
+
+### Manual Installation
+
+Alternatively, copy the `autogitlog` directory to your agent's skills directory:
+
+```bash
+cp -r autogitlog ~/.config/crush/skills/
+```
+
+## Usage
+
+Once installed, simply ask your agent to set up auto git log for a directory:
+
+```
+Set up auto git log for ~/Documents/notes
+```
+
+If there are files that should be ignored, let the agent know and it will update `.gitignore` appropriately.
 
 ## Configuration Options
 You can ask the agent to configure a given directory's auto git log behavior in several ways. Since it is an agent skill, no precise format is required, though they are listed as flags here for convenience.
