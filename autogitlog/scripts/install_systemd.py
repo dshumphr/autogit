@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Installs auto-git-log as a systemd user service on Linux.
+Installs autogitlog as a systemd user service on Linux.
 """
 
 import argparse
@@ -20,13 +20,13 @@ def install(watch_dir: str):
         sys.exit(1)
 
     safe_name = watch_dir.replace("/", "-").strip("-")
-    service_name = f"auto-git-log-{safe_name}"
+    service_name = f"autogitlog-{safe_name}"
     service_file = SYSTEMD_USER_DIR / f"{service_name}.service"
     python = sys.executable
-    log_path = Path.home() / ".auto-git-log" / "daemon.log"
+    log_path = Path.home() / ".autogitlog" / "daemon.log"
 
     unit_content = f"""[Unit]
-Description=auto-git-log watcher for {watch_dir}
+Description=autogitlog watcher for {watch_dir}
 After=network.target
 
 [Service]
@@ -56,7 +56,7 @@ WantedBy=default.target
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Install auto-git-log as a systemd user service")
+    parser = argparse.ArgumentParser(description="Install autogitlog as a systemd user service")
     parser.add_argument("--dir", required=True, help="The watched directory (must already be configured)")
     args = parser.parse_args()
     watch_dir = str(Path(args.dir).expanduser().resolve())

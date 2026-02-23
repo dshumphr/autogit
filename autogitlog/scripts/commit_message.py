@@ -139,7 +139,7 @@ def generate_commit_message(
         cmd = cmd_template.replace("{prompt}", prompt.replace('"', '\\"').replace('`', '\\`').replace('$', '\\$'))
         input_data = None
 
-    log_prefix = "[auto-git-log]"
+    log_prefix = "[autogitlog]"
     try:
         result = subprocess.run(
             cmd,

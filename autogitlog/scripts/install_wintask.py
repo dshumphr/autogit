@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Installs auto-git-log as a Windows Task Scheduler task.
+Installs autogitlog as a Windows Task Scheduler task.
 Run this in an elevated (Administrator) prompt, or use --no-elevate to
 register as a user-level task (which may not start at login without elevation).
 """
@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 SCRIPTS_DIR = Path(__file__).parent
-CONFIG_FILE = Path.home() / ".auto-git-log" / "config.json"
+CONFIG_FILE = Path.home() / ".autogitlog" / "config.json"
 
 
 def load_config():
@@ -30,7 +30,7 @@ def install(watch_dir: str):
         sys.exit(1)
 
     safe_name = watch_dir.replace("\\", "-").replace(":", "").replace("/", "-").strip("-")
-    task_name = f"auto-git-log-{safe_name}"
+    task_name = f"autogitlog-{safe_name}"
     python = sys.executable
     daemon_script = str(SCRIPTS_DIR / "daemon.py")
 
@@ -57,12 +57,12 @@ def install(watch_dir: str):
     print(f"\nTo start now:   schtasks /run /tn \"{task_name}\"")
     print(f"To stop:        schtasks /end /tn \"{task_name}\"")
     print(f"To delete:      schtasks /delete /tn \"{task_name}\" /f")
-    print(f"\nLogs: {Path.home() / '.auto-git-log' / 'daemon.log'}")
+    print(f"\nLogs: {Path.home() / '.autogitlog' / 'daemon.log'}")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Install auto-git-log as a Windows Task Scheduler task"
+        description="Install autogitlog as a Windows Task Scheduler task"
     )
     parser.add_argument("--dir", required=True, help="The watched directory (must already be configured)")
     args = parser.parse_args()

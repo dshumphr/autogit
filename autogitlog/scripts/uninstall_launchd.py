@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Uninstalls auto-git-log launchd service for a directory.
+Uninstalls autogitlog launchd service for a directory.
 """
 
 import argparse
@@ -13,7 +13,7 @@ LAUNCH_AGENTS_DIR = Path.home() / "Library" / "LaunchAgents"
 
 def uninstall(watch_dir: str):
     watch_dir = str(Path(watch_dir).expanduser().resolve())
-    label = f"com.auto-git-log.{watch_dir.replace('/', '-').strip('-')}"
+    label = f"com.autogitlog.{watch_dir.replace('/', '-').strip('-')}"
     plist_path = LAUNCH_AGENTS_DIR / f"{label}.plist"
 
     # Unload service if exists
@@ -29,7 +29,7 @@ def uninstall(watch_dir: str):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Uninstall auto-git-log for a directory")
+    parser = argparse.ArgumentParser(description="Uninstall autogitlog for a directory")
     parser.add_argument("--dir", required=True, help="The watched directory to uninstall")
     args = parser.parse_args()
     uninstall(args.dir)

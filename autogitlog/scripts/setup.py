@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-auto-git-log setup script
+autogitlog setup script
 Initializes a directory for automatic git tracking.
 """
 
@@ -28,7 +28,7 @@ desktop.ini
 .#*
 \\#*#
 
-# Auto-git-log internal config
+# autogitlog internal config
 .autogit
 
 # Common artifacts
@@ -60,7 +60,7 @@ def setup(args):
         print(f"Directory does not exist: {watch_dir}")
         sys.exit(1)
 
-    print(f"Setting up auto-git-log for: {watch_dir}")
+    print(f"Setting up autogitlog for: {watch_dir}")
 
     # Init git if needed
     if not (watch_dir / ".git").exists():
@@ -98,7 +98,7 @@ def setup(args):
             existing = gitignore_path.read_text()
             if not existing.endswith('\n'):
                 existing += '\n'
-            existing += "\n# Custom patterns (added by auto-git-log)\n"
+            existing += "\n# Custom patterns (added by autogitlog)\n"
             for pattern in args.ignore:
                 existing += f"{pattern}\n"
             gitignore_path.write_text(existing)
@@ -110,7 +110,7 @@ def setup(args):
         run(["git", "add", "-A"], cwd=watch_dir)
         status = run(["git", "status", "--porcelain"], cwd=watch_dir)
         if status.stdout.strip():
-            run(["git", "commit", "-m", "initial commit (auto-git-log setup)"], cwd=watch_dir)
+            run(["git", "commit", "-m", "initial commit (autogitlog setup)"], cwd=watch_dir)
         else:
             print("Nothing to commit for initial commit.")
 
@@ -144,7 +144,7 @@ def setup(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Set up auto-git-log for a directory")
+    parser = argparse.ArgumentParser(description="Set up autogitlog for a directory")
     parser.add_argument("--dir",    required=True, help="Directory to watch")
     parser.add_argument("--remote", required=True, help="Git remote URL")
     parser.add_argument("--branch", default="main", help="Branch name (default: main)")

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Uninstalls auto-git-log systemd service for a directory.
+Uninstalls autogitlog systemd service for a directory.
 """
 
 import argparse
@@ -14,7 +14,7 @@ SYSTEMD_USER_DIR = Path.home() / ".config" / "systemd" / "user"
 def uninstall(watch_dir: str):
     watch_dir = str(Path(watch_dir).expanduser().resolve())
     safe_name = watch_dir.replace("/", "-").strip("-")
-    service_name = f"auto-git-log-{safe_name}"
+    service_name = f"autogitlog-{safe_name}"
     service_file = SYSTEMD_USER_DIR / f"{service_name}.service"
 
     # Stop and disable service if exists
@@ -33,7 +33,7 @@ def uninstall(watch_dir: str):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Uninstall auto-git-log for a directory")
+    parser = argparse.ArgumentParser(description="Uninstall autogitlog for a directory")
     parser.add_argument("--dir", required=True, help="The watched directory to uninstall")
     args = parser.parse_args()
     uninstall(args.dir)

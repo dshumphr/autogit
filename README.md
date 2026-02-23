@@ -1,8 +1,8 @@
-# auto-git-log
+# autogitlog
 
 A **Crush/Claude Code skill** that automatically tracks changes in a directory, committing and pushing them to GitHub with LLM-powered commit messages. Designed for LLM-readable **non-code files** — notes, journals, research, drafts, configs — where you want a searchable git history without touching git manually.
 
-> **Note:** This is an agent skill designed to be installed in your agent's skill directory (e.g., `~/.config/crush/skills/auto-git-log/`). The scripts run from the skill directory itself.
+> **Note:** This is an agent skill designed to be installed in your agent's skill directory (e.g., `~/.config/crush/skills/autogitlog/`). The scripts run from the skill directory itself.
 
 ## Features
 
@@ -29,8 +29,8 @@ A **Crush/Claude Code skill** that automatically tracks changes in a directory, 
 ### Quick Install (Recommended)
 
 ```bash
-git clone https://github.com/yourusername/auto-git-log.git
-cd auto-git-log
+git clone https://github.com/yourusername/autogitlog.git
+cd autogitlog
 ./install.sh
 ```
 
@@ -105,7 +105,7 @@ Your agent CLI must:
 2. Write a single commit message line to stdout
 3. Exit with code 0 on success
 
-**Fallback behavior:** If the agent CLI fails, times out (60s), or produces no output, auto-git-log falls back to a stat-based message like `auto: 3 files changed, 42 insertions(+)`. Commits are never silently skipped.
+**Fallback behavior:** If the agent CLI fails, times out (60s), or produces no output, autogitlog falls back to a stat-based message like `auto: 3 files changed, 42 insertions(+)`. Commits are never silently skipped.
 
 ## How It Works
 

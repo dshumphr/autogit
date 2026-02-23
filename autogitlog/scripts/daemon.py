@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-auto-git-log daemon
+autogitlog daemon
 Watches a directory and commits+pushes changes on a schedule.
 
 Commit triggers:
@@ -25,8 +25,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from commit_message import generate_commit_message, DEFAULT_AGENT_CMD, DEFAULT_AGENT_MODEL
 
-# Set up logging (will create ~/.auto-git-log/daemon.log for consolidated logs)
-LOG_DIR = Path.home() / ".auto-git-log"
+# Set up logging (will create ~/.autogitlog/daemon.log for consolidated logs)
+LOG_DIR = Path.home() / ".autogitlog"
 LOG_FILE = LOG_DIR / "daemon.log"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -38,7 +38,7 @@ logging.basicConfig(
         logging.StreamHandler(sys.stdout),
     ]
 )
-log = logging.getLogger("auto-git-log")
+log = logging.getLogger("autogitlog")
 
 
 def run(cmd, cwd=None):
@@ -104,7 +104,7 @@ def run_daemon(
     idle_secs        = idle_minutes * 60
     max_interval_secs = max_interval_minutes * 60
 
-    log.info("Starting auto-git-log daemon")
+    log.info("Starting autogitlog daemon")
     log.info(f"  Watching:     {watch_dir}")
     log.info(f"  Idle trigger: {idle_minutes} min")
     log.info(f"  Max interval: {max_interval_minutes} min")
@@ -159,7 +159,7 @@ def run_daemon(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="auto-git-log daemon")
+    parser = argparse.ArgumentParser(description="autogitlog daemon")
     parser.add_argument("--dir",          required=True, help="Directory to watch")
     parser.add_argument("--idle",         type=float,    help="Idle timeout in minutes (overrides config)")
     parser.add_argument("--max-interval", type=float,    help="Max interval in minutes (overrides config)")

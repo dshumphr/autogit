@@ -1,9 +1,9 @@
 ---
-name: auto-git-log
+name: autogitlog
 description: "Automatically tracks changes in a directory by committing and pushing them via git on a schedule. Use this skill whenever the user wants to: set up automatic git versioning for notes, text files, journals, or any non-code files; create a searchable revision history for documents; run a 'git watch' or 'auto-commit' daemon; periodically back up a folder to GitHub; or track changes to a directory without manually running git. Trigger this skill for any request involving automatic/periodic git commits, watching a directory for changes, or setting up git logging for notes or documents. Works best with files which are LLM-understable."
 ---
 
-# Auto-Git-Log
+# autogitlog
 
 Automatically watches a directory, generates commit messages via an agent CLI, and pushes changes to GitHub when:
 - Changes have been idle for **X minutes** (quiescence trigger), OR
@@ -77,25 +77,25 @@ This will:
 - Add `.gitignore` with sensible defaults
 - Set or update the remote
 - Create an initial commit if the repo is empty
-- Save config to `~/.auto-git-log/config.json`
+- Save config to `~/.autogitlog/config.json`
 
 ### Phase 4: Setup the background service to run the watcher daemon:
 
 #### macOS (launchd)
 ```bash
-SKILL_DIR="$HOME/.config/crush/skills/auto-git-log"
+SKILL_DIR="$HOME/.config/crush/skills/autogitlog"
 python3 "$SKILL_DIR/scripts/install_launchd.py" --dir ~/notes
 ```
 
 #### Linux (systemd)
 ```bash
-SKILL_DIR="$HOME/.config/crush/skills/auto-git-log"
+SKILL_DIR="$HOME/.config/crush/skills/autogitlog"
 python3 "$SKILL_DIR/scripts/install_systemd.py" --dir ~/notes
 ```
 
 #### Windows (Task Scheduler)
 ```bash
-SKILL_DIR="$HOME/.config/crush/skills/auto-git-log"
+SKILL_DIR="$HOME/.config/crush/skills/autogitlog"
 python3 "$SKILL_DIR/scripts/install_wintask.py" --dir ~/notes
 ```
 
@@ -145,7 +145,7 @@ Any CLI that reads a prompt and writes the response to stdout works. Use `{promp
 
 ## Configuration File
 
-Stored at `~/.auto-git-log/config.json`:
+Stored at `~/.autogitlog/config.json`:
 
 ```json
 {
@@ -183,7 +183,7 @@ Multiple directories can be watched simultaneously with different configs.
 - HTTPS: `git config --global credential.helper store`, then do one manual push.
 
 **Commit messages are vague / fallback fires every time**
-- Check `~/.auto-git-log/daemon.log` for the agent CLI error
+- Check `~/.autogitlog/daemon.log` for the agent CLI error
 - Test the agent command manually: `crush run --small_model "say hello"`
 
 **Too many commits**

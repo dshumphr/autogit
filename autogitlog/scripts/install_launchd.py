@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Installs auto-git-log as a macOS launchd user agent so it runs in the background
+Installs autogitlog as a macOS launchd user agent so it runs in the background
 and survives reboots.
 """
 
@@ -20,9 +20,9 @@ def install(watch_dir: str):
         print(f"No .autogit config found in {watch_dir}. Run setup.py first.")
         sys.exit(1)
 
-    label = f"com.auto-git-log.{watch_dir.replace('/', '-').strip('-')}"
+    label = f"com.autogitlog.{watch_dir.replace('/', '-').strip('-')}"
     plist_path = LAUNCH_AGENTS_DIR / f"{label}.plist"
-    log_path = Path.home() / ".auto-git-log" / "daemon.log"
+    log_path = Path.home() / ".autogitlog" / "daemon.log"
     python = sys.executable
 
     plist_content = f"""<?xml version="1.0" encoding="UTF-8"?>
@@ -69,7 +69,7 @@ def install(watch_dir: str):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Install auto-git-log as a macOS launchd agent")
+    parser = argparse.ArgumentParser(description="Install autogitlog as a macOS launchd agent")
     parser.add_argument("--dir", required=True, help="The watched directory (must already be configured)")
     args = parser.parse_args()
     watch_dir = str(Path(args.dir).expanduser().resolve())

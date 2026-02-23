@@ -31,7 +31,7 @@ if [ "$SHOW_HELP" = true ]; then
     cat << EOF
 Usage: ./install.sh [OPTIONS]
 
-Install the auto-git-log Crush skill.
+Install the autogitlog Crush skill.
 
 Options:
   -d, --dir DIR    Installation directory (default: ~/.config/crush/skills)
@@ -54,7 +54,7 @@ SOURCE_DIR="${SCRIPT_DIR}/${SKILL_NAME}"
 # Check if source directory exists
 if [ ! -d "$SOURCE_DIR" ]; then
     echo "Error: Source directory not found: ${SOURCE_DIR}"
-    echo "This script should be run from the root of the auto-git-log repository."
+    echo "This script should be run from the root of the autogitlog repository."
     exit 1
 fi
 
@@ -75,7 +75,7 @@ if [ -d "$TARGET_DIR" ]; then
 fi
 
 # Copy the skill
-echo "Installing auto-git-log skill..."
+echo "Installing autogitlog skill..."
 cp -r "$SOURCE_DIR" "$TARGET_DIR"
 
 # Make scripts executable
