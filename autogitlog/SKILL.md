@@ -172,6 +172,37 @@ Multiple directories can be watched simultaneously with different configs.
 
 ---
 
+## Uninstalling
+
+To stop the watcher and remove the background service:
+
+#### macOS (launchd)
+```bash
+SKILL_DIR="$HOME/.config/crush/skills/autogitlog"
+python3 "$SKILL_DIR/scripts/uninstall_launchd.py" --dir ~/notes
+```
+
+#### Linux (systemd)
+```bash
+SKILL_DIR="$HOME/.config/crush/skills/autogitlog"
+python3 "$SKILL_DIR/scripts/uninstall_systemd.py" --dir ~/notes
+```
+
+#### Windows (Task Scheduler)
+```bash
+SKILL_DIR="$HOME/.config/crush/skills/autogitlog"
+python3 "$SKILL_DIR/scripts/uninstall_wintask.py" --dir ~/notes
+```
+
+This will:
+- Stop the running watcher daemon
+- Remove the persistent service configuration
+- Leave your git repository and `.autogit` config intact
+
+To fully clean up, manually delete the `.autogit` file from your watched directory.
+
+---
+
 ## Troubleshooting
 
 **Agent CLI not found / command not found**
@@ -205,5 +236,8 @@ Multiple directories can be watched simultaneously with different configs.
 | `scripts/install_launchd.py` | macOS persistent service installer |
 | `scripts/install_systemd.py` | Linux persistent service installer |
 | `scripts/install_wintask.py` | Windows Task Scheduler installer |
+| `scripts/uninstall_launchd.py` | macOS service uninstaller |
+| `scripts/uninstall_systemd.py` | Linux service uninstaller |
+| `scripts/uninstall_wintask.py` | Windows service uninstaller |
 
 You may read the relevant script before running it to understand its exact behavior.
