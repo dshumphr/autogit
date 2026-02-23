@@ -45,7 +45,7 @@ Ask (or infer from context):
 5. **Poll interval** (default: 15 sec) — how frequently to check for changes?
 6. **Agent CLI** (default: `crush run --small_model "{prompt}"`) — the command used to generate commit messages. See [Agent CLI Configuration](#agent-cli-configuration) below.
 7. **Branch** to push to? (default: `main`)
-8. **File patterns to ignore?** (e.g., `*.tmp`, `.DS_Store` — sensible defaults apply)
+8. **File patterns to ignore?** (e.g., `*.tmp`, `.DS_Store`, `.autogit` — sensible defaults apply)
 
 ### Phase 2: Check Prerequisites
 
