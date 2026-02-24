@@ -73,7 +73,7 @@ You can ask the agent to configure a given directory's auto git log behavior in 
 | `--idle` | `5` | Minutes of inactivity before committing |
 | `--max-interval` | `60` | Max minutes between commits (force commit even if changes keep coming) |
 | `--poll` | `30` | Seconds between change checks |
-| `--agent-cmd` | `crush run --small_model "{prompt}"` | Agent CLI command template (see below) |
+| `--agent-cmd` | `crush run --small-model "{prompt}"` | Agent CLI command template (see below) |
 | `--ignore` | *(none)* | Additional file patterns to ignore (space-separated, e.g., `*.log *.tmp secret.txt`) |
 
 ### Agent CLI Configuration
@@ -81,7 +81,7 @@ You can ask the agent to configure a given directory's auto git log behavior in 
 The `--agent-cmd` option controls how commit messages are generated. The default uses [crush](https://github.com/crushsh/crush):
 
 ```bash
---agent-cmd 'crush run --small_model "{prompt}"'
+--agent-cmd 'crush run --small-model "{prompt}"'
 ```
 
 The `{prompt}` placeholder gets replaced with the full prompt (diff + instructions). If you omit `{prompt}`, the prompt is sent via stdin instead.

@@ -39,13 +39,20 @@ Follow these phases in order:
 
 Ask (or infer from context):
 1. **Which directory** to watch?
-2. **GitHub remote URL** — Infer from local git config if present. If the directory doesn't have a repo set yet, try to infer a remote URL from context like the directory chosen. If you can't infer, ask the user for the remote URL (SSH or HTTPS). 
+2. **GitHub remote URL** — Follow this process:
+   - If the directory already has a git repo, check for an existing remote: `git -C <dir> remote get-url origin`
+   - Try to infer the GitHub username:
+     - Check `git config --get github.user`
+     - Check `git config --get user.email` (extract username from GitHub email patterns)
+   - If you find placeholder-looking usernames like "user", "username", "yourname" in the remote URL, replace with the inferred username
+   - If you can't infer, ask the user for their GitHub username and construct the URL
+   - Prefer SSH format (`git@github.com:user/repo.git`) for better automation, but offer HTTPS as fallback
 3. **Idle timeout** (default: 5 min) — how long with no changes before committing?
 4. **Max interval** (default: 60 min) — force-commit even if changes keep rolling in?
 5. **Poll interval** (default: 15 sec) — how frequently to check for changes?
-6. **Agent CLI** (default: `crush run --small_model "{prompt}"`) — the command used to generate commit messages. See [Agent CLI Configuration](#agent-cli-configuration) below.
+6. **Agent CLI** (default: `crush run --small-model "{prompt}"`) — the command used to generate commit messages. See [Agent CLI Configuration](#agent-cli-configuration) below.
 7. **Branch** to push to? (default: `main`)
-8. **File patterns to ignore?** (e.g., `*.tmp`, `.DS_Store`, `.autogit` — sensible defaults apply)
+8. **File patterns to ignore?** (e.g., `*.tmp`, `.DS_Store` — sensible defaults apply including `.autogit` and `.autogitlog/`)
 
 ### Phase 2: Check Prerequisites
 
@@ -54,6 +61,8 @@ git --version     # must be installed
 python3 --version # needed for the daemon and scripts
 crush --version   # or whichever agent CLI the user wants — verify it's on PATH
 ```
+
+**IMPORTANT**: When installing as a background service (launchd/systemd/Task Scheduler), services often run with limited PATH. The setup script will automatically resolve agent commands like `crush` to absolute paths (e.g., `/usr/local/bin/crush`). If resolution fails, you may need to provide the full path manually.
 
 For SSH remotes, verify: `ssh -T git@github.com`
 For HTTPS, note the user may need a personal access token stored in the git credential helper.
@@ -68,16 +77,19 @@ python3 "scripts/setup.py" \
   --idle 5 \
   --max-interval 60 \
   --poll 15 \
-  --agent-cmd 'crush run --small_model "{prompt}"'
+  --agent-cmd 'crush run --small-model "{prompt}"'
   # --agent-model claude-haiku-4-5-20251001   (optional model override)
 ```
 
 This will:
 - `git init` if not already a repo
-- Add `.gitignore` with sensible defaults
+- Add `.gitignore` with sensible defaults (including `.autogit` and `.autogitlog/`)
 - Set or update the remote
+- **Test git authentication** and warn if it fails
 - Create an initial commit if the repo is empty
-- Save config to `~/.autogitlog/config.json`
+- **Resolve the agent command to an absolute path** (e.g., `crush` → `/usr/local/bin/crush`)
+- Save config to the watched directory's `.autogit` file
+- If updating an existing config, suggest restarting the service
 
 ### Phase 4: Setup the background service to run the watcher daemon:
 
@@ -108,13 +120,13 @@ When a commit is triggered, the daemon calls `commit_message.py`, which **shells
 ### Default: crush
 
 ```
-crush run --small_model "{prompt}"
+crush run --small-model "{prompt}"
 ```
 
-The `{prompt}` placeholder is replaced with the full prompt text (the diff + instructions). `--small_model` tells crush to use its fast/cheap model. To pin a specific model:
+The `{prompt}` placeholder is replaced with the full prompt text (the diff + instructions). `--small-model` tells crush to use its fast/cheap model. To pin a specific model:
 
 ```bash
---agent-cmd 'crush run --small_model=claude-haiku-4-5-20251001 "{prompt}"'
+--agent-cmd 'crush run --small-model=claude-haiku-4-5-20251001 "{prompt}"'
 # or equivalently, just pass --agent-model:
 --agent-model claude-haiku-4-5-20251001
 ```
@@ -157,7 +169,7 @@ Stored at `~/.autogitlog/config.json`:
       "idle_minutes": 5,
       "max_interval_minutes": 60,
       "poll_seconds": 15,
-      "agent_cmd": "crush run --small_model \"{prompt}\"",
+      "agent_cmd": "crush run --small-model \"{prompt}\"",
       "agent_model": null,
       "last_push": null,
       "pid": null
@@ -166,7 +178,7 @@ Stored at `~/.autogitlog/config.json`:
 }
 ```
 
-`agent_model` is `null` by default. When set, it's substituted into the default crush command as `--small_model=<model>` — useful if you want to pin a specific model without writing a full custom `agent_cmd`.
+`agent_model` is `null` by default. When set, it's substituted into the default crush command as `--small-model=<model>` — useful if you want to pin a specific model without writing a full custom `agent_cmd`.
 
 Multiple directories can be watched simultaneously with different configs.
 
@@ -206,16 +218,20 @@ To fully clean up, manually delete the `.autogit` file from your watched directo
 ## Troubleshooting
 
 **Agent CLI not found / command not found**
+- The setup script automatically resolves commands to absolute paths (e.g., `crush` → `/usr/local/bin/crush`)
+- If you see this error, the agent command may not have been found during setup
 - Verify it's on PATH: `which crush` or `crush --version`
-- Use the full path in `--agent-cmd` if needed: `/usr/local/bin/crush run ...`
+- Re-run setup with the full path: `--agent-cmd '/usr/local/bin/crush run --small-model "{prompt}"'`
 
 **Push fails with auth error**
+- The setup script tests authentication during Phase 3 and will warn if it fails
 - SSH: `ssh -T git@github.com`. Add key with `ssh-add ~/.ssh/id_ed25519`.
 - HTTPS: `git config --global credential.helper store`, then do one manual push.
 
 **Commit messages are vague / fallback fires every time**
-- Check `~/.autogitlog/daemon.log` for the agent CLI error
-- Test the agent command manually: `crush run --small_model "say hello"`
+- Check daemon logs for the agent CLI error (location varies by platform)
+- Test the agent command manually: `crush run --small-model "say hello"`
+- Ensure the agent command uses an absolute path if running as a service
 
 **Too many commits**
 - Increase `--idle` so changes must settle longer before triggering
@@ -223,6 +239,10 @@ To fully clean up, manually delete the `.autogit` file from your watched directo
 
 **"nothing to commit" but files changed**
 - Files may match `.gitignore`. Check: `git status --ignored`
+
+**Daemon using old config after update**
+- When you update settings via `setup.py`, the script will suggest restart commands
+- Restart the service using the appropriate command for your platform (see output)
 
 ---
 

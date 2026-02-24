@@ -7,11 +7,12 @@ Initializes a directory for automatic git tracking.
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
 
-DEFAULT_AGENT_CMD   = 'crush run --small_model "{prompt}"'
+DEFAULT_AGENT_CMD   = 'crush run --small-model "{prompt}"'
 DEFAULT_AGENT_MODEL = None
 
 DEFAULT_GITIGNORE = """\
@@ -53,6 +54,60 @@ def save_local_config(watch_dir: Path, config: dict):
         json.dump(config, f, indent=2)
 
 
+def test_git_auth(remote_url, cwd):
+    """Test if we can authenticate to the remote. Returns (success, message)"""
+    print("Testing git authentication...")
+    
+    # Try ls-remote as a non-destructive auth test
+    result = subprocess.run(
+        ["git", "ls-remote", "--heads", remote_url],
+        cwd=cwd,
+        capture_output=True,
+        text=True,
+        timeout=10
+    )
+    
+    if result.returncode == 0:
+        return True, "Authentication successful"
+    
+    # Parse common errors
+    error = result.stderr.lower()
+    if "permission denied" in error or "authentication failed" in error:
+        if remote_url.startswith("git@"):
+            return False, "SSH authentication failed. Run: ssh -T git@github.com"
+        else:
+            return False, "HTTPS authentication failed. Check credentials."
+    elif "could not resolve host" in error:
+        return False, "Network error: cannot reach GitHub"
+    else:
+        return False, f"Git remote test failed: {result.stderr[:200]}"
+
+
+def resolve_agent_cmd_path(agent_cmd):
+    """Resolve relative paths in agent command to absolute paths"""
+    # Extract the command name (first token)
+    parts = agent_cmd.split()
+    if not parts:
+        return agent_cmd
+    
+    cmd_name = parts[0]
+    
+    # If it's already an absolute path, return as-is
+    if cmd_name.startswith('/'):
+        return agent_cmd
+    
+    # Try to find the full path
+    full_path = shutil.which(cmd_name)
+    if full_path:
+        parts[0] = full_path
+        return ' '.join(parts)
+    
+    # Couldn't resolve, return original with warning
+    print(f"WARNING: Could not find '{cmd_name}' in PATH. "
+          f"Service may fail if PATH is not available.")
+    return agent_cmd
+
+
 def setup(args):
     watch_dir = Path(args.dir).expanduser().resolve()
 
@@ -61,6 +116,10 @@ def setup(args):
         sys.exit(1)
 
     print(f"Setting up autogitlog for: {watch_dir}")
+    
+    # Detect if this is a config update
+    config_file = watch_dir / ".autogit"
+    is_update = config_file.exists()
 
     # Init git if needed
     if not (watch_dir / ".git").exists():
@@ -79,6 +138,14 @@ def setup(args):
     else:
         print(f"Adding remote origin: {args.remote}")
         run(["git", "remote", "add", "origin", args.remote], cwd=watch_dir)
+    
+    # Test authentication
+    auth_ok, auth_msg = test_git_auth(args.remote, watch_dir)
+    if not auth_ok:
+        print(f"\nWARNING: {auth_msg}")
+        print("Setup will continue, but pushes will fail until authentication is configured.")
+    else:
+        print(f"✓ {auth_msg}")
 
     # Add .gitignore if missing
     gitignore_path = watch_dir / ".gitignore"
@@ -114,6 +181,9 @@ def setup(args):
         else:
             print("Nothing to commit for initial commit.")
 
+    # Resolve agent command to absolute path
+    resolved_agent_cmd = resolve_agent_cmd_path(args.agent_cmd)
+    
     # Save config to local .autogit file
     config = {
         "remote":               args.remote,
@@ -121,12 +191,23 @@ def setup(args):
         "idle_minutes":         args.idle,
         "max_interval_minutes": args.max_interval,
         "poll_seconds":         args.poll,
-        "agent_cmd":            args.agent_cmd,
+        "agent_cmd":            resolved_agent_cmd,
     }
     if args.agent_model:
         config["agent_model"] = args.agent_model
     
     save_local_config(watch_dir, config)
+    
+    # If this was an update and a service might be running, suggest restart
+    if is_update:
+        print("\n⚠ Configuration updated. If the watcher service is running, restart it:")
+        if sys.platform == "darwin":
+            print(f"  launchctl stop com.autogitlog.{watch_dir.name}")
+            print(f"  launchctl start com.autogitlog.{watch_dir.name}")
+        elif sys.platform == "linux":
+            print(f"  systemctl --user restart autogitlog-{watch_dir.name}")
+        elif sys.platform == "win32":
+            print(f"  Stop and start the 'autogitlog-{watch_dir.name}' task in Task Scheduler")
 
     print(f"\n✓ Setup complete!")
     print(f"  Dir:          {watch_dir}")
@@ -160,7 +241,7 @@ def main():
                              f'Default: {DEFAULT_AGENT_CMD!r}')
     parser.add_argument("--agent-model", default=DEFAULT_AGENT_MODEL,
                         help="Optional model name passed to the default crush command "
-                             "as --small_model=<model>. Ignored if --agent-cmd is fully custom.")
+                             "as --small-model=<model>. Ignored if --agent-cmd is fully custom.")
     parser.add_argument("--ignore", nargs='*',
                         help="Additional file patterns to ignore (e.g., *.log *.tmp)")
     args = parser.parse_args()

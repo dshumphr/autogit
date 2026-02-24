@@ -7,7 +7,7 @@ agent CLI to produce the commit message. The agent CLI is fully configurable —
 defaults to crush with its small/fast model flag.
 
 Default command template:
-    crush run --small_model "{prompt}"
+    crush run --small-model "{prompt}"
 
 The {prompt} placeholder is replaced with the full prompt text.
 Alternatively, set agent_cmd to read from stdin, e.g.:
@@ -32,10 +32,10 @@ import sys
 # The default agent command template.
 # {prompt} is replaced with the full prompt string.
 # Use shell=True so pipes, env vars, etc. all work.
-DEFAULT_AGENT_CMD = 'crush run --small_model "{prompt}"'
+DEFAULT_AGENT_CMD = 'crush run --small-model "{prompt}"'
 
 # Optional: override the model used by crush (e.g. "claude-haiku-4-5-20251001")
-# If set, the template becomes: crush run --small_model=<model> "{prompt}"
+# If set, the template becomes: crush run --small-model=<model> "{prompt}"
 DEFAULT_AGENT_MODEL = None
 
 # Max characters of diff to send (large diffs get truncated)
@@ -113,7 +113,7 @@ def generate_commit_message(
     agent_cmd: shell command template with optional {prompt} placeholder.
                If {prompt} is absent, the prompt is passed via stdin instead.
     agent_model: if set, substituted into the default crush command as
-                 --small_model=<model>. Ignored if agent_cmd is fully custom.
+                 --small-model=<model>. Ignored if agent_cmd is fully custom.
     """
     stat = _get_stat(repo_dir)
     diff = _get_diff(repo_dir)
@@ -124,10 +124,10 @@ def generate_commit_message(
     prompt = PROMPT_TEMPLATE.format(stat=stat, diff=diff)
 
     # If using the default crush command and a specific model was requested,
-    # rewrite the flag to --small_model=<model>
+    # rewrite the flag to --small-model=<model>
     cmd_template = agent_cmd
     if agent_model and agent_cmd == DEFAULT_AGENT_CMD:
-        cmd_template = f'crush run --small_model={shlex.quote(agent_model)} "{{prompt}}"'
+        cmd_template = f'crush run --small-model={shlex.quote(agent_model)} "{{prompt}}"'
 
     # Decide whether prompt goes inline or via stdin
     use_stdin = "{prompt}" not in cmd_template
@@ -141,6 +141,10 @@ def generate_commit_message(
 
     log_prefix = "[autogitlog]"
     try:
+        import os
+        env = os.environ.copy()
+        if 'HOME' not in env or not env.get('HOME'):
+            env['HOME'] = os.path.expanduser('~')
         result = subprocess.run(
             cmd,
             shell=True,
@@ -148,6 +152,7 @@ def generate_commit_message(
             capture_output=True,
             text=True,
             timeout=60,
+            env=env,
         )
 
         if result.returncode != 0:

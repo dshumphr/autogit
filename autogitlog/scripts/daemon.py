@@ -132,8 +132,8 @@ def run_daemon(
         if changes_exist:
             if not pending_changes:
                 log.info("Changes detected.")
+                last_change_time = now
             pending_changes  = True
-            last_change_time = now
 
         should_commit = False
         reason        = ""
