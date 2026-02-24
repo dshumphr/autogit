@@ -50,7 +50,7 @@ Ask (or infer from context):
 3. **Idle timeout** (default: 5 min) — how long with no changes before committing?
 4. **Max interval** (default: 60 min) — force-commit even if changes keep rolling in?
 5. **Poll interval** (default: 15 sec) — how frequently to check for changes?
-6. **Agent CLI** (default: `crush run --small-model "{prompt}"`) — the command used to generate commit messages. See [Agent CLI Configuration](#agent-cli-configuration) below.
+6. **Agent CLI** (default: `crush run "{prompt}" --small-model=claude-haiku-4-5-20251001`) — the command used to generate commit messages. See [Agent CLI Configuration](#agent-cli-configuration) below.
 7. **Branch** to push to? (default: `main`)
 8. **File patterns to ignore?** (e.g., `*.tmp`, `.DS_Store` — sensible defaults apply including `.autogit` and `.autogitlog/`)
 
@@ -77,7 +77,7 @@ python3 "scripts/setup.py" \
   --idle 5 \
   --max-interval 60 \
   --poll 15 \
-  --agent-cmd 'crush run --small-model "{prompt}"'
+  --agent-cmd 'crush run "{prompt}" --small-model=claude-haiku-4-5-20251001'
   # --agent-model claude-haiku-4-5-20251001   (optional model override)
 ```
 
@@ -121,13 +121,13 @@ When a commit is triggered, the daemon calls `commit_message.py`, which **shells
 ### Default: crush
 
 ```
-crush run --small-model "{prompt}"
+crush run "{prompt}" --small-model=claude-haiku-4-5-20251001
 ```
 
 The `{prompt}` placeholder is replaced with the full prompt text (the diff + instructions). `--small-model` tells crush to use its fast/cheap model. To pin a specific model:
 
 ```bash
---agent-cmd 'crush run --small-model=claude-haiku-4-5-20251001 "{prompt}"'
+--agent-cmd 'crush run "{prompt}" --small-model=claude-haiku-4-5-20251001'
 # or equivalently, just pass --agent-model:
 --agent-model claude-haiku-4-5-20251001
 ```
@@ -170,7 +170,7 @@ Stored at `~/.autogitlog/config.json`:
       "idle_minutes": 5,
       "max_interval_minutes": 60,
       "poll_seconds": 15,
-      "agent_cmd": "crush run --small-model \"{prompt}\"",
+      "agent_cmd": "crush run \"{prompt}\" --small-model=claude-haiku-4-5-20251001",
       "agent_model": null,
       "last_push": null,
       "pid": null
@@ -222,7 +222,7 @@ To fully clean up, manually delete the `.autogit` file from your watched directo
 - The setup script automatically resolves commands to absolute paths (e.g., `crush` → `/usr/local/bin/crush`)
 - If you see this error, the agent command may not have been found during setup
 - Verify it's on PATH: `which crush` or `crush --version`
-- Re-run setup with the full path: `--agent-cmd '/usr/local/bin/crush run --small-model "{prompt}"'`
+- Re-run setup with the full path: `--agent-cmd '/usr/local/bin/crush run "{prompt}" --small-model=claude-haiku-4-5-20251001'`
 
 **Push fails with auth error**
 - The setup script tests authentication during Phase 3 and will warn if it fails
@@ -231,7 +231,7 @@ To fully clean up, manually delete the `.autogit` file from your watched directo
 
 **Commit messages are vague / fallback fires every time**
 - Check daemon logs for the agent CLI error (location varies by platform)
-- Test the agent command manually: `crush run --small-model "say hello"`
+- Test the agent command manually: `crush run "say hello" --small-model=claude-haiku-4-5-20251001`
 - Ensure the agent command uses an absolute path if running as a service
 
 **Too many commits**

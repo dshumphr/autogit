@@ -7,7 +7,7 @@ agent CLI to produce the commit message. The agent CLI is fully configurable —
 defaults to crush with its small/fast model flag.
 
 Default command template:
-    crush run --small-model "{prompt}"
+    crush run "{prompt}" --small-model=claude-haiku-4-5-20251001
 
 The {prompt} placeholder is replaced with the full prompt text.
 Alternatively, set agent_cmd to read from stdin, e.g.:
@@ -32,10 +32,10 @@ import sys
 # The default agent command template.
 # {prompt} is replaced with the full prompt string.
 # Use shell=True so pipes, env vars, etc. all work.
-DEFAULT_AGENT_CMD = 'crush run --small-model "{prompt}"'
+DEFAULT_AGENT_CMD = 'crush run "{prompt}" --small-model=claude-haiku-4-5-20251001'
 
 # Optional: override the model used by crush (e.g. "claude-haiku-4-5-20251001")
-# If set, the template becomes: crush run --small-model=<model> "{prompt}"
+# If set, the template becomes: crush run "{prompt}" --small-model=<model>
 DEFAULT_AGENT_MODEL = None
 
 # Max characters of diff to send (large diffs get truncated)
@@ -127,7 +127,7 @@ def generate_commit_message(
     # rewrite the flag to --small-model=<model>
     cmd_template = agent_cmd
     if agent_model and agent_cmd == DEFAULT_AGENT_CMD:
-        cmd_template = f'crush run --small-model={shlex.quote(agent_model)} "{{prompt}}"'
+        cmd_template = f'crush run "{{prompt}}" --small-model={shlex.quote(agent_model)}'
 
     # Decide whether prompt goes inline or via stdin
     use_stdin = "{prompt}" not in cmd_template

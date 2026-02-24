@@ -12,7 +12,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-DEFAULT_AGENT_CMD   = 'crush run --small-model "{prompt}"'
+DEFAULT_AGENT_CMD   = 'crush run "{prompt}" --small-model=claude-haiku-4-5-20251001'
 DEFAULT_AGENT_MODEL = None
 
 DEFAULT_GITIGNORE = """\

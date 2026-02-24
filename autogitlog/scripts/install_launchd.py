@@ -5,6 +5,7 @@ and survives reboots.
 """
 
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -24,6 +25,27 @@ def install(watch_dir: str):
     plist_path = LAUNCH_AGENTS_DIR / f"{label}.plist"
     log_path = Path.home() / ".autogitlog" / "daemon.log"
     python = sys.executable
+
+
+    home = os.environ.get('HOME', str(Path.home()))
+    path = os.environ.get('PATH', '/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin')
+    # Ensure homebrew paths are included
+    if '/opt/homebrew/bin' not in path:
+        path = f"/opt/homebrew/bin:{path}"
+    
+    # Get Anthropic API key if available (needed for crush to generate commit messages)
+    anthropic_key = os.environ.get('ANTHROPIC_API_KEY', '')
+    
+    # Build environment variables dict
+    env_vars = f"""    <key>HOME</key>
+    <string>{home}</string>
+    <key>PATH</key>
+    <string>{path}</string>"""
+    
+    if anthropic_key:
+        env_vars += f"""
+    <key>ANTHROPIC_API_KEY</key>
+    <string>{anthropic_key}</string>"""
 
     plist_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
@@ -47,11 +69,19 @@ def install(watch_dir: str):
   <key>KeepAlive</key>
   <true/>
 
+  <key>WorkingDirectory</key>
+  <string>{home}</string>
+
   <key>StandardOutPath</key>
   <string>{log_path}</string>
 
   <key>StandardErrorPath</key>
   <string>{log_path}</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+{env_vars}
+  </dict>
 </dict>
 </plist>
 """
