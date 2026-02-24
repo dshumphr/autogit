@@ -31,6 +31,7 @@ desktop.ini
 
 # autogitlog internal config
 .autogit
+.autogitlog/
 
 # Common artifacts
 *.pyc
@@ -149,6 +150,8 @@ def setup(args):
 
     # Add .gitignore if missing
     gitignore_path = watch_dir / ".gitignore"
+    required_patterns = ['.autogit', '.autogitlog/']
+    
     if not gitignore_path.exists():
         print("Creating .gitignore...")
         gitignore_content = DEFAULT_GITIGNORE
@@ -160,6 +163,23 @@ def setup(args):
         gitignore_path.write_text(gitignore_content)
     else:
         print(".gitignore already exists.")
+        existing = gitignore_path.read_text()
+        
+        # Ensure required patterns are present
+        missing_patterns = []
+        for pattern in required_patterns:
+            if pattern not in existing:
+                missing_patterns.append(pattern)
+        
+        if missing_patterns:
+            print(f"Adding required patterns to .gitignore: {', '.join(missing_patterns)}")
+            if not existing.endswith('\n'):
+                existing += '\n'
+            existing += "\n# autogitlog config (added by setup)\n"
+            for pattern in missing_patterns:
+                existing += f"{pattern}\n"
+            gitignore_path.write_text(existing)
+        
         if args.ignore:
             print(f"Appending custom ignore patterns: {', '.join(args.ignore)}")
             existing = gitignore_path.read_text()

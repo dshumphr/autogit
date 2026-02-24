@@ -84,6 +84,7 @@ python3 "scripts/setup.py" \
 This will:
 - `git init` if not already a repo
 - Add `.gitignore` with sensible defaults (including `.autogit` and `.autogitlog/`)
+- **If `.gitignore` already exists**, ensure `.autogit` and `.autogitlog/` patterns are present (adds them if missing)
 - Set or update the remote
 - **Test git authentication** and warn if it fails
 - Create an initial commit if the repo is empty
