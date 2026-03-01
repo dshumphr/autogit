@@ -50,8 +50,8 @@ def has_changes(repo_dir: str) -> bool:
     return bool(r.stdout.strip())
 
 
-def commit_and_push(repo_dir: str, branch: str, agent_cmd: str, agent_model: str) -> bool:
-    """Stage all changes, ask the agent CLI for a commit message, commit, push."""
+def commit_and_push(repo_dir: str, branch: str, agent_cmd: str, agent_model: str, push_remote: bool = True) -> bool:
+    """Stage all changes, ask the agent CLI for a commit message, commit, and optionally push."""
     r = run(["git", "add", "-A"], cwd=repo_dir)
     if r.returncode != 0:
         log.error(f"git add failed: {r.stderr}")
@@ -71,6 +71,10 @@ def commit_and_push(repo_dir: str, branch: str, agent_cmd: str, agent_model: str
     if r.returncode != 0:
         log.error(f"git commit failed: {r.stderr}")
         return False
+
+    if not push_remote:
+        log.info("Local-only mode: skipping push.")
+        return True
 
     log.info(f"Pushing to origin/{branch}...")
     r = run(["git", "push", "origin", branch], cwd=repo_dir)
@@ -100,6 +104,7 @@ def run_daemon(
     poll_seconds: int,
     agent_cmd: str,
     agent_model: str,
+    push_remote: bool = True,
 ):
     idle_secs        = idle_minutes * 60
     max_interval_secs = max_interval_minutes * 60
@@ -110,6 +115,7 @@ def run_daemon(
     log.info(f"  Max interval: {max_interval_minutes} min")
     log.info(f"  Poll interval:{poll_seconds} sec")
     log.info(f"  Branch:       {branch}")
+    log.info(f"  Push remote:  {push_remote}")
     log.info(f"  Agent cmd:    {agent_cmd}")
     if agent_model:
         log.info(f"  Agent model:  {agent_model}")
@@ -149,7 +155,7 @@ def run_daemon(
 
         if should_commit:
             log.info(f"Commit trigger: {reason}")
-            success = commit_and_push(watch_dir, branch, agent_cmd, agent_model)
+            success = commit_and_push(watch_dir, branch, agent_cmd, agent_model, push_remote)
             if success:
                 last_push_time   = time.time()
                 last_change_time = None
@@ -167,6 +173,7 @@ def main():
     parser.add_argument("--branch",                      help="Branch to push to (overrides config)")
     parser.add_argument("--agent-cmd",                   help="Agent CLI command template (overrides config)")
     parser.add_argument("--agent-model",                 help="Model hint passed to the agent (overrides config)")
+    parser.add_argument("--no-push",      action="store_true", help="Local-only mode: commit but do not push to remote")
     args = parser.parse_args()
 
     watch_dir = str(Path(args.dir).expanduser().resolve())
@@ -181,6 +188,7 @@ def main():
         branch       = args.branch       or watch_cfg.get("branch", "main")
         agent_cmd    = args.agent_cmd    or watch_cfg.get("agent_cmd", DEFAULT_AGENT_CMD)
         agent_model  = args.agent_model  or watch_cfg.get("agent_model", DEFAULT_AGENT_MODEL)
+        push_remote  = not args.no_push  and watch_cfg.get("push_remote", True)
     else:
         log.warning(f"No .autogit config found in {watch_dir}. Using CLI args or defaults.")
         idle         = args.idle or 5
@@ -189,8 +197,9 @@ def main():
         branch       = args.branch or "main"
         agent_cmd    = args.agent_cmd or DEFAULT_AGENT_CMD
         agent_model  = args.agent_model or DEFAULT_AGENT_MODEL
+        push_remote  = not args.no_push
 
-    run_daemon(watch_dir, idle, max_interval, branch, poll, agent_cmd, agent_model)
+    run_daemon(watch_dir, idle, max_interval, branch, poll, agent_cmd, agent_model, push_remote)
 
 
 if __name__ == "__main__":

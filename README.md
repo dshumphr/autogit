@@ -70,8 +70,9 @@ You can ask the agent to configure a given directory's auto git log behavior in 
 | Option | Default | Description |
 |--------|---------|-------------|
 | `--dir` | *(required)* | Directory to watch |
-| `--remote` | inferred from dir and git configuration | Git remote URL (SSH or HTTPS) |
-| `--branch` | `main` | Branch to commit and push to |
+| `--local-only` | `false` | Commit locally only — no remote, no push |
+| `--remote` | inferred from dir and git configuration | Git remote URL (SSH or HTTPS); not needed with `--local-only` |
+| `--branch` | `main` | Branch to commit (and push) to |
 | `--idle` | `5` | Minutes of inactivity before committing |
 | `--max-interval` | `60` | Max minutes between commits (force commit even if changes keep coming) |
 | `--poll` | `30` | Seconds between change checks |

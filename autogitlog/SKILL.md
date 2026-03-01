@@ -39,7 +39,11 @@ Follow these phases in order:
 
 Ask (or infer from context):
 1. **Which directory** to watch?
-2. **GitHub remote URL** — Follow this process:
+2. **Local-only or push to remote?** — Ask the user explicitly:
+   - **Local-only**: commits are made locally for a git history, but nothing is pushed anywhere. No GitHub account or remote needed.
+   - **Push to remote**: commits are pushed to a GitHub/GitLab/etc. remote after each commit cycle.
+   - If they choose local-only, skip step 3 entirely.
+3. **GitHub remote URL** *(skip if local-only)* — Follow this process:
    - If the directory already has a git repo, check for an existing remote: `git -C <dir> remote get-url origin`
    - Try to infer the GitHub username:
      - Check `git config --get github.user`
@@ -47,12 +51,13 @@ Ask (or infer from context):
    - If you find placeholder-looking usernames like "user", "username", "yourname" in the remote URL, replace with the inferred username
    - If you can't infer, ask the user for their GitHub username and construct the URL
    - Prefer SSH format (`git@github.com:user/repo.git`) for better automation, but offer HTTPS as fallback
-3. **Idle timeout** (default: 5 min) — how long with no changes before committing?
+4. **Idle timeout** (default: 5 min) — how long with no changes before committing?
 4. **Max interval** (default: 60 min) — force-commit even if changes keep rolling in?
-5. **Poll interval** (default: 15 sec) — how frequently to check for changes?
-6. **Agent CLI** (default: `crush run "{prompt}" --small-model=claude-haiku-4-5-20251001`) — the command used to generate commit messages. See [Agent CLI Configuration](#agent-cli-configuration) below.
-7. **Branch** to push to? (default: `main`)
-8. **File patterns to ignore?** (e.g., `*.tmp`, `.DS_Store` — sensible defaults apply including `.autogit` and `.autogitlog/`)
+5. **Max interval** (default: 60 min) — force-commit even if changes keep rolling in?
+6. **Poll interval** (default: 15 sec) — how frequently to check for changes?
+7. **Agent CLI** (default: `crush run "{prompt}" --small-model=claude-haiku-4-5-20251001`) — the command used to generate commit messages. See [Agent CLI Configuration](#agent-cli-configuration) below.
+8. **Branch** (default: `main`)
+9. **File patterns to ignore?** (e.g., `*.tmp`, `.DS_Store` — sensible defaults apply including `.autogit` and `.autogitlog/`)
 
 ### Phase 2: Check Prerequisites
 
@@ -64,11 +69,13 @@ crush --version   # or whichever agent CLI the user wants — verify it's on PAT
 
 **IMPORTANT**: When installing as a background service (launchd/systemd/Task Scheduler), services often run with limited PATH. The setup script will automatically resolve agent commands like `crush` to absolute paths (e.g., `/usr/local/bin/crush`). If resolution fails, you may need to provide the full path manually.
 
-For SSH remotes, verify: `ssh -T git@github.com`
+For remote setups with SSH, verify: `ssh -T git@github.com`
 For HTTPS, note the user may need a personal access token stored in the git credential helper.
+For local-only setups, no remote auth is needed.
 
 ### Phase 3: Initialize the Directory
 
+**With remote push (default):**
 ```bash
 python3 "scripts/setup.py" \
   --dir "/path/to/dir" \
@@ -79,6 +86,18 @@ python3 "scripts/setup.py" \
   --poll 15 \
   --agent-cmd 'crush run "{prompt}" --small-model=claude-haiku-4-5-20251001'
   # --agent-model claude-haiku-4-5-20251001   (optional model override)
+```
+
+**Local-only (no remote, no push):**
+```bash
+python3 "scripts/setup.py" \
+  --dir "/path/to/dir" \
+  --local-only \
+  --branch main \
+  --idle 5 \
+  --max-interval 60 \
+  --poll 15 \
+  --agent-cmd 'crush run "{prompt}" --small-model=claude-haiku-4-5-20251001'
 ```
 
 This will:

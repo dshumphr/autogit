@@ -131,22 +131,25 @@ def setup(args):
 
     run(["git", "checkout", "-B", args.branch], cwd=watch_dir, check=False)
 
-    # Set remote
-    existing_remotes = run(["git", "remote"], cwd=watch_dir, check=False).stdout.split()
-    if "origin" in existing_remotes:
-        print(f"Updating remote origin to {args.remote}")
-        run(["git", "remote", "set-url", "origin", args.remote], cwd=watch_dir)
+    if not args.local_only:
+        # Set remote
+        existing_remotes = run(["git", "remote"], cwd=watch_dir, check=False).stdout.split()
+        if "origin" in existing_remotes:
+            print(f"Updating remote origin to {args.remote}")
+            run(["git", "remote", "set-url", "origin", args.remote], cwd=watch_dir)
+        else:
+            print(f"Adding remote origin: {args.remote}")
+            run(["git", "remote", "add", "origin", args.remote], cwd=watch_dir)
+
+        # Test authentication
+        auth_ok, auth_msg = test_git_auth(args.remote, watch_dir)
+        if not auth_ok:
+            print(f"\nWARNING: {auth_msg}")
+            print("Setup will continue, but pushes will fail until authentication is configured.")
+        else:
+            print(f"✓ {auth_msg}")
     else:
-        print(f"Adding remote origin: {args.remote}")
-        run(["git", "remote", "add", "origin", args.remote], cwd=watch_dir)
-    
-    # Test authentication
-    auth_ok, auth_msg = test_git_auth(args.remote, watch_dir)
-    if not auth_ok:
-        print(f"\nWARNING: {auth_msg}")
-        print("Setup will continue, but pushes will fail until authentication is configured.")
-    else:
-        print(f"✓ {auth_msg}")
+        print("Local-only mode: skipping remote setup.")
 
     # Add .gitignore if missing
     gitignore_path = watch_dir / ".gitignore"
@@ -203,15 +206,16 @@ def setup(args):
 
     # Resolve agent command to absolute path
     resolved_agent_cmd = resolve_agent_cmd_path(args.agent_cmd)
-    
+
     # Save config to local .autogit file
     config = {
-        "remote":               args.remote,
+        "remote":               args.remote if not args.local_only else None,
         "branch":               args.branch,
         "idle_minutes":         args.idle,
         "max_interval_minutes": args.max_interval,
         "poll_seconds":         args.poll,
         "agent_cmd":            resolved_agent_cmd,
+        "push_remote":          not args.local_only,
     }
     if args.agent_model:
         config["agent_model"] = args.agent_model
@@ -231,8 +235,12 @@ def setup(args):
 
     print(f"\n✓ Setup complete!")
     print(f"  Dir:          {watch_dir}")
-    print(f"  Remote:       {args.remote}")
+    if not args.local_only:
+        print(f"  Remote:       {args.remote}")
+    else:
+        print(f"  Remote:       (none — local-only mode)")
     print(f"  Branch:       {args.branch}")
+    print(f"  Push remote:  {not args.local_only}")
     print(f"  Idle timeout: {args.idle} min")
     print(f"  Max interval: {args.max_interval} min")
     print(f"  Poll interval:{args.poll} sec")
@@ -246,8 +254,10 @@ def setup(args):
 
 def main():
     parser = argparse.ArgumentParser(description="Set up autogitlog for a directory")
-    parser.add_argument("--dir",    required=True, help="Directory to watch")
-    parser.add_argument("--remote", required=True, help="Git remote URL")
+    parser.add_argument("--dir",         required=True, help="Directory to watch")
+    parser.add_argument("--remote",       default=None,  help="Git remote URL (not needed in local-only mode)")
+    parser.add_argument("--local-only",   action="store_true",
+                        help="Commit-only mode: track changes locally without pushing to a remote")
     parser.add_argument("--branch", default="main", help="Branch name (default: main)")
     parser.add_argument("--idle",   type=float, default=5.0,
                         help="Minutes of inactivity before committing (default: 5)")
@@ -265,6 +275,8 @@ def main():
     parser.add_argument("--ignore", nargs='*',
                         help="Additional file patterns to ignore (e.g., *.log *.tmp)")
     args = parser.parse_args()
+    if not args.local_only and not args.remote:
+        parser.error("--remote is required unless --local-only is set")
     setup(args)
 
 
