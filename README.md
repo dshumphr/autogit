@@ -11,9 +11,11 @@ A **Crush/Claude Code skill** that automatically tracks changes in a directory, 
   - **Quiescence:** Commit after X minutes without further changes (default: 5 min)
   - **Max interval:** Force commit after Y minutes even if changes keep coming (default: 60 min)
   - Both are only triggered if there are changes since the previous commit.
-- 🔄 **Cross-platform:** macOS, Linux, Windows
+- 🔄 **Platform support:** macOS (tested), Linux and Windows (untested — may require tweaks)
 - 📦 **Few dependencies:** Python, Git, and your favorite tool-calling agent cli
 - 🔌 **Flexible agent integration:** Works with any CLI that reads prompts and writes to stdout
+
+> **Platform note:** Only macOS has been tested. Linux (systemd) and Windows (Task Scheduler) installers exist but are untested and may need environment-specific tweaks — contributions welcome.
 
 ## Prerequisites
 
